@@ -1,0 +1,91 @@
+ALERTA DE PRODUCAO
+
+Identificacao
+- alerta: CheckoutHighErrorRate
+- status: firing
+- severidade: critical
+- inicio: 2026-09-09T14:26:00-03:00
+- ambiente: producao
+- regiao: sa-east-1
+- cluster: eks-prod-sa-east-1
+- namespace: commerce
+- servico: checkout-api
+- versao atual: v2.14.0
+- versao anterior: v2.13.7
+
+Condicao de disparo
+- HTTP 5xx acima de 5% por 5 minutos
+- valor atual: 18,4%
+- baseline dos ultimos 7 dias: 0,18%
+- requisicoes na janela: 12.842
+- requisicoes com erro: 2.363
+
+Metricas da aplicacao
+- throughput: 214 req/s; baseline no mesmo horario: 207 req/s
+- latencia p50: 182 ms; baseline: 176 ms
+- latencia p95: 1,86 s; baseline: 640 ms
+- latencia p99: 3,92 s; baseline: 1,10 s
+- CPU media dos pods: 31%; limite: 1 core
+- memoria media dos pods: 47%; limite: 1 GiB
+- reinicios de container: 0
+- replicas disponiveis: 12 de 12
+- fila de conexoes HTTP: 6%; baseline: 4%
+- pool de conexoes PostgreSQL: 38 de 80 em uso
+
+Dependencias
+- payments-api: erro 0,3%; p95 420 ms
+- inventory-api: erro 0,1%; p95 210 ms
+- coupon-service: erro HTTP 0,0%; p95 1,42 s; baseline p95 190 ms
+- PostgreSQL: CPU 42%; conexoes 96 de 300; replica lag 18 ms
+- Redis: hit rate 96,8%; memoria 54%; evictions 0
+
+Mudancas recentes
+- 14:18:03 - inicio do rollout de checkout-api v2.14.0
+- 14:21:47 - rollout concluido; 12 de 12 replicas disponiveis
+- 14:22:10 - trafego integral direcionado para v2.14.0
+- 14:24:31 - primeira elevacao sustentada de latencia no coupon-service
+- 14:25:08 - primeiro pico de NullPointerException no checkout-api
+- nenhuma mudanca de infraestrutura registrada nas ultimas 6 horas
+- nenhuma alteracao de configuracao ou secret registrada no namespace commerce
+
+Eventos do Kubernetes
+2026-09-09T14:18:04-03:00 Normal  ScalingReplicaSet deployment/checkout-api Scaled up replica set checkout-api-6b9df7d88f from 0 to 3
+2026-09-09T14:18:22-03:00 Normal  Pulled            pod/checkout-api-6b9df7d88f-k9m2p Container image "registry.internal/commerce/checkout-api:v2.14.0" already present on machine
+2026-09-09T14:18:24-03:00 Normal  Started           pod/checkout-api-6b9df7d88f-k9m2p Started container checkout-api
+2026-09-09T14:19:02-03:00 Normal  Available         deployment/checkout-api Deployment has minimum availability
+2026-09-09T14:21:47-03:00 Normal  ScalingReplicaSet deployment/checkout-api Scaled down replica set checkout-api-74cd8c5f6b from 12 to 0
+
+Logs correlacionados
+2026-09-09T14:25:00.229-03:00 level=INFO service=api-gateway method=POST path=/v1/checkout status=500 duration_ms=1842 trace_id=4bf92f3577b34da6a3ce929d0e0e4736 upstream=checkout-api
+2026-09-09T14:24:58.821-03:00 level=INFO service=checkout-api version=v2.14.0 pod=checkout-api-6b9df7d88f-k9m2p event=checkout_started order_id=ord-984271 coupon_code=BOASVINDAS trace_id=4bf92f3577b34da6a3ce929d0e0e4736
+2026-09-09T14:24:58.846-03:00 level=INFO service=checkout-api component=InventoryClient method=reserve status=200 duration_ms=23 trace_id=4bf92f3577b34da6a3ce929d0e0e4736
+2026-09-09T14:25:00.218-03:00 level=WARN service=checkout-api component=CouponClient method=validate status=200 duration_ms=1368 response_bytes=0 coupon_code=BOASVINDAS trace_id=4bf92f3577b34da6a3ce929d0e0e4736 msg="coupon-service returned an empty response body"
+2026-09-09T14:25:00.220-03:00 level=ERROR service=checkout-api component=PaymentHandler trace_id=4bf92f3577b34da6a3ce929d0e0e4736 msg="Unhandled exception while applying discount" exception="java.lang.NullPointerException: Cannot invoke CouponDTO.getDiscount() because coupon is null"
+2026-09-09T14:25:00.220-03:00 level=ERROR service=checkout-api trace_id=4bf92f3577b34da6a3ce929d0e0e4736 stacktrace="java.lang.NullPointerException: Cannot invoke CouponDTO.getDiscount() because coupon is null\n  at com.acme.checkout.PaymentHandler.applyDiscount(PaymentHandler.java:142)\n  at com.acme.checkout.PaymentHandler.calculateTotal(PaymentHandler.java:96)\n  at com.acme.checkout.CheckoutService.process(CheckoutService.java:71)\n  at com.acme.checkout.CheckoutController.create(CheckoutController.java:54)"
+2026-09-09T14:25:00.224-03:00 level=INFO service=checkout-api method=POST path=/v1/checkout status=500 duration_ms=1405 trace_id=4bf92f3577b34da6a3ce929d0e0e4736
+
+2026-09-09T14:25:00.207-03:00 level=INFO service=coupon-service version=v3.8.2 pod=coupon-service-7f56f4d54f-b7n8q method=GET path=/internal/coupons/BOASVINDAS status=200 duration_ms=1322 trace_id=4bf92f3577b34da6a3ce929d0e0e4736 msg="coupon not applicable for customer segment; returning empty result"
+2026-09-09T14:25:32.602-03:00 level=WARN service=checkout-api component=CouponClient event=slow_dependency duration_ms=1511 threshold_ms=800 trace_id=ab91c850c2f84bf0891603de41fdf112
+2026-09-09T14:25:32.606-03:00 level=ERROR service=checkout-api component=PaymentHandler trace_id=ab91c850c2f84bf0891603de41fdf112 exception="java.lang.NullPointerException: Cannot invoke CouponDTO.getDiscount() because coupon is null"
+2026-09-09T14:25:44.038-03:00 level=INFO service=checkout-api event=checkout_completed status=201 duration_ms=388 coupon_code=null trace_id=22c84e6f7019419ba3a89eaf813cf760
+2026-09-09T14:25:49.415-03:00 level=INFO service=checkout-api event=checkout_completed status=201 duration_ms=421 coupon_code=FRETEGRATIS trace_id=816f5779547f4c2380ddf191aee3d301
+
+2026-09-09T14:26:02.118-03:00 level=WARN service=checkout-api component=HikariPool msg="Thread starvation or clock leap detected" delta=1m12s
+2026-09-09T14:26:02.124-03:00 level=INFO service=checkout-api component=HikariPool active=38 idle=42 waiting=0 max=80
+2026-09-09T14:26:05.779-03:00 level=WARN service=checkout-api component=HttpClient target=coupon-service retry=1 max_retries=2 reason="read timeout after 1000ms" trace_id=f6aa5080b2184f81b317017ce8c5ba90
+2026-09-09T14:26:06.103-03:00 level=INFO service=checkout-api component=HttpClient target=coupon-service retry=1 status=200 duration_ms=312 response_bytes=0 trace_id=f6aa5080b2184f81b317017ce8c5ba90
+2026-09-09T14:26:06.105-03:00 level=ERROR service=checkout-api component=PaymentHandler trace_id=f6aa5080b2184f81b317017ce8c5ba90 exception="java.lang.NullPointerException: Cannot invoke CouponDTO.getDiscount() because coupon is null"
+
+Comparacao por versao nos ultimos 10 minutos
+- checkout-api v2.13.7: 31 requisicoes; HTTP 5xx 0,0%; pods drenados ao fim do rollout
+- checkout-api v2.14.0: 12.811 requisicoes; HTTP 5xx 18,4%
+- erros concentram-se em requisicoes com coupon_code preenchido
+- requisicoes sem cupom permanecem com HTTP 201
+- requisicoes com cupons que retornam objeto completo permanecem com HTTP 201
+
+Estado atual
+- alerta continua firing
+- clientes com cupom sao os mais afetados
+- pagamentos nao sao enviados quando a excecao ocorre
+- nao houve perda confirmada de pedidos; as requisicoes falham antes da criacao da cobranca
+- rollback ainda nao executado
