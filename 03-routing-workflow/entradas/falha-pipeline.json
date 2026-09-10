@@ -1,0 +1,4 @@
+{
+  "titulo": "Deploy bloqueado no ambiente de producao",
+  "descricao": "O job de migrations falhou depois da atualizacao da imagem. O log termina com timeout ao conectar no banco e o deploy nao avancou."
+}

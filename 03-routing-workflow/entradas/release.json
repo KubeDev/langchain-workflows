@@ -1,0 +1,4 @@
+{
+  "titulo": "Preparar comunicado da versao 2.14.0",
+  "descricao": "A versao adiciona cache de catalogo, corrige o timeout do checkout e atualiza a imagem base. Produza um texto curto para o canal de releases."
+}

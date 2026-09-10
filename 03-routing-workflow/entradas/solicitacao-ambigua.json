@@ -1,0 +1,4 @@
+{
+  "titulo": "Deploy falhou depois da mudanca de infraestrutura",
+  "descricao": "O pipeline parou porque a alteracao do Terraform bloqueou o acesso ao banco. Preciso revisar a mudanca, corrigir a entrega e publicar o comunicado da versao."
+}

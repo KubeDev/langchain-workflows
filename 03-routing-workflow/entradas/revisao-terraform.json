@@ -1,0 +1,4 @@
+{
+  "titulo": "Revisar alteracao de rede no Terraform",
+  "descricao": "O pull request cria um security group que libera a porta 5432 para 0.0.0.0/0. Preciso de uma revisao antes do merge."
+}
