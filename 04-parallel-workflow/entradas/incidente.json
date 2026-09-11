@@ -1,0 +1,4 @@
+{
+  "titulo": "Erros 503 depois do deploy do checkout",
+  "descricao": "O deploy terminou sem falhas e os pods aparecem como prontos. Cinco minutos depois, a taxa de respostas 503 passou de 1% para 18%. A latencia do checkout subiu de 240 ms para 1,9 s e o pool de conexoes com o banco permanece perto do limite. Nao houve mudanca conhecida no banco de dados."
+}

@@ -1,0 +1,13 @@
+[project]
+name = "parallel-workflow"
+version = "0.1.0"
+description = "Exemplo didatico de execucoes independentes com RunnableParallel"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+    "langchain-core>=1.6.2",
+    "langchain-openai>=1.6.0",
+    "pydantic>=2.13.4",
+    "python-dotenv>=1.2.2",
+]
